@@ -2,17 +2,15 @@
 # Perimeter: https://stackoverflow.com/questions/48786232/how-can-i-calculate-the-perimeter-of-an-object-in-an-image
 from PIL import Image
 from PIL import ImageFilter
-from matplotlib import pyplot as plt
 from imutils import build_montages
 from imutils import paths
+from skimage.measure import label, regionprops
 import shannon_entropy
 import cv2
-import numpy as np
-import argparse
 import imutils
 import os
-from skimage.measure import label, regionprops
 import skimage.io as io
+import numpy as np
 
 def getSize(filename):
   st = os.stat(filename)
@@ -43,16 +41,19 @@ def image_colorfulness(imagePath):
 
 # ------------------------------ MY METHOD --------------------
 fileNames = ['Animals_001_h','Animals_002_v','Animals_003_h']
+imagesPath = 'images/'
 
 for fileName in fileNames:
-  fileSize = getSize(fileName + '.jpg')
+  fileName = imagesPath + fileName
+  fileNameJpg = fileName + '.jpg'
+  fileSize = getSize(fileNameJpg)
 
   # * Shannon
-  img = Image.open(fileName + '.jpg')
+  img = Image.open(fileNameJpg)
   shannonResult = shannon_entropy.shannon_entropy(img) - 1.56
 
   # ** Canny
-  img = cv2.imread(fileName + '.jpg', 0)
+  img = cv2.imread(fileNameJpg, 0)
 
   edges = cv2.Canny(img, 255, 300)
   cannyFilename = fileName + '_canny.jpg'
@@ -62,10 +63,10 @@ for fileName in fileNames:
   # *** Kronrod
 
   ## Colorfullness
-  fileColorfullness = image_colorfulness(fileName + '.jpg')
+  fileColorfullness = image_colorfulness(fileNameJpg)
 
   ## Perimeter
-  img = io.imread(fileName + '.jpg')
+  img = io.imread(fileNameJpg)
   bw = img[:,:,0] > 230
   regions = regionprops(bw.astype(int))
   filePerimeter = regions[0].perimeter
