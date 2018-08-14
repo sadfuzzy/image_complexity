@@ -16,7 +16,7 @@ def getSize(filename):
   st = os.stat(filename)
   return st.st_size
 
-def image_colorfulness(imagePath):
+def imageColorfulness(imagePath):
   image = cv2.imread(imagePath)
   image = imutils.resize(image, width=250)
 	# split the image into its respective RGB components
@@ -42,15 +42,18 @@ def image_colorfulness(imagePath):
 # ------------------------------ MY METHOD --------------------
 fileNames = ['Animals_001_h','Animals_002_v','Animals_003_h']
 imagesPath = 'images/'
+balancingKoeff = 1.56
 
 for fileName in fileNames:
   fileName = imagesPath + fileName
   fileNameJpg = fileName + '.jpg'
+
+  # * File size
   fileSize = getSize(fileNameJpg)
 
   # * Shannon
   img = Image.open(fileNameJpg)
-  shannonResult = shannon_entropy.shannon_entropy(img) - 1.56
+  shannonResult = shannon_entropy.shannon_entropy(img) - balancingKoeff
 
   # ** Canny
   img = cv2.imread(fileNameJpg, 0)
@@ -63,7 +66,7 @@ for fileName in fileNames:
   # *** Kronrod
 
   ## Colorfullness
-  fileColorfullness = image_colorfulness(fileNameJpg)
+  fileColorfullness = imageColorfulness(fileNameJpg)
 
   ## Perimeter
   img = io.imread(fileNameJpg)
@@ -71,4 +74,6 @@ for fileName in fileNames:
   regions = regionprops(bw.astype(int))
   filePerimeter = regions[0].perimeter
 
-  print "{0}, size(raw): {1}, shannon: {2}, size(canny): {3}, colorfullness: {4}, perimeter: {5}".format(fileName, fileSize, shannonResult, cannonResult, fileColorfullness, filePerimeter)
+  E = shannonResult + fileColorfullness + filePerimeter
+
+  print "{0}, size(raw): {1}, shannon: {2}, size(canny): {3}, colorfullness: {4}, perimeter: {5}, E: {6}".format(fileName, fileSize, shannonResult, cannonResult, fileColorfullness, filePerimeter, E)
