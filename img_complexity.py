@@ -1,5 +1,6 @@
 # Colourfullness: https://www.pyimagesearch.com/2017/06/05/computing-image-colorfulness-with-opencv-and-python/
 # Perimeter: https://stackoverflow.com/questions/48786232/how-can-i-calculate-the-perimeter-of-an-object-in-an-image
+# Saliency: https://www.pyimagesearch.com/2018/07/16/opencv-saliency-detection/
 from PIL import Image
 from PIL import ImageFilter
 from imutils import build_montages
