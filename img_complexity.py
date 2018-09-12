@@ -10,6 +10,7 @@ import shannon_entropy
 import cv2
 import imutils
 import os
+import csv
 import skimage.io as io
 import numpy as np
 
@@ -42,61 +43,68 @@ def imageColorfulness(imagePath):
 
 # ------------------------------ MY METHOD --------------------
 # fileNames = ['Animals_001_h','Animals_002_v','Animals_003_h']
-fileNames =  ['Animals_001_h']
-imagesPath = 'images/'
+fileNames =  ['-1.1','-1.2','-1.3','-2.1','-2.2','-2.3','-3.1','-3.2','-3.3','-4.1']
+imagesPath = 'pics/'
 balancingKoeff = 1.56
 
-for fileName in fileNames:
-  fileName = imagesPath + fileName
-  fileNameJpg = fileName + '.jpg'
+with open('results.csv', 'w', newline='') as csvfile:
+  results = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
 
-  # * File size
-  fileSize = getSize(fileNameJpg)
+  results.writerow(['Image', 'File size', 'Shannon', 'Canny', 'SaliencyMap', 'SaliencyTresh', 'Kronrod', 'Perimeter'])
 
-  # * Shannon
-  img = Image.open(fileNameJpg)
-  shannonResult = shannon_entropy.shannon_entropy(img) - balancingKoeff
+  for fileName in fileNames:
+    fileName = imagesPath + fileName
+    fileNameJpg = fileName + '.jpg'
 
-  # ** Canny
-  img = cv2.imread(fileNameJpg, 0)
+    # * File size
+    fileSize = getSize(fileNameJpg)
 
-  edges = cv2.Canny(img, 255, 300)
-  cannyFilename = fileName + '_canny.jpg'
-  cv2.imwrite(cannyFilename, edges)
-  cannonResult = getSize(cannyFilename)
+    # * Shannon
+    img = Image.open(fileNameJpg)
+    shannonResult = shannon_entropy.shannon_entropy(img) - balancingKoeff
 
-  # ** Saliency
-  # initialize OpenCV's static saliency spectral residual detector and
-  # compute the saliency map
-  saliency = cv2.saliency.StaticSaliencySpectralResidual_create()
-  (success, saliencyMap) = saliency.computeSaliency(img)
-  saliencyMap = (saliencyMap * 255).astype("uint8")
-  # initialize OpenCV's static fine grained saliency detector and
-  # compute the saliency map
-  saliency = cv2.saliency.StaticSaliencyFineGrained_create()
-  (success, saliencyMap) = saliency.computeSaliency(img)
+    # ** Canny
+    img = cv2.imread(fileNameJpg, 0)
 
-  # if we would like a *binary* map that we could process for contours,
-  # compute convex hull's, extract bounding boxes, etc., we can
-  # additionally threshold the saliency map
-  threshMap = cv2.threshold(saliencyMap, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
+    edges = cv2.Canny(img, 255, 300)
+    cannyFilename = fileName + '_canny.jpg'
+    cv2.imwrite(cannyFilename, edges)
+    cannonResult = getSize(cannyFilename)
 
-  cv2.imwrite(fileName + '_saliency_map.jpg', saliencyMap)
-  saliencyMap = getSize(fileName + '_saliency_map.jpg')
-  cv2.imwrite(fileName + '_saliency_thresh.jpg', threshMap)
-  saliencyThresh = getSize(fileName + '_saliency_thresh.jpg')
+    # ** Saliency
+    # initialize OpenCV's static saliency spectral residual detector and
+    # compute the saliency map
+    saliency = cv2.saliency.StaticSaliencySpectralResidual_create()
+    (success, saliencyMap) = saliency.computeSaliency(img)
+    saliencyMap = (saliencyMap * 255).astype("uint8")
+    # initialize OpenCV's static fine grained saliency detector and
+    # compute the saliency map
+    saliency = cv2.saliency.StaticSaliencyFineGrained_create()
+    (success, saliencyMap) = saliency.computeSaliency(img)
 
-  # *** Kronrod
+    # if we would like a *binary* map that we could process for contours,
+    # compute convex hull's, extract bounding boxes, etc., we can
+    # additionally threshold the saliency map
+    threshMap = cv2.threshold(saliencyMap, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
 
-  ## Colorfullness
-  fileColorfullness = imageColorfulness(fileNameJpg)
+    cv2.imwrite(fileName + '_saliency_map.jpg', saliencyMap)
+    saliencyMap = getSize(fileName + '_saliency_map.jpg')
+    cv2.imwrite(fileName + '_saliency_thresh.jpg', threshMap)
+    saliencyThresh = getSize(fileName + '_saliency_thresh.jpg')
 
-  ## Perimeter
-  img = io.imread(fileNameJpg)
-  bw = img[:,:,0] > 230
-  regions = regionprops(bw.astype(int))
-  filePerimeter = regions[0].perimeter
+    # *** Kronrod
 
-  E = shannonResult + saliencyMap + saliencyThresh + fileColorfullness + filePerimeter
+    ## Colorfullness
+    fileColorfullness = imageColorfulness(fileNameJpg)
 
-  print("{}, size(raw): {}, shannon: {}, size(canny): {}, saliency map: {}, saliency threshold: {}, colorfullness: {}, perimeter: {}, E: {}".format(fileName, fileSize, shannonResult, cannonResult, saliencyMap, saliencyThresh, fileColorfullness, filePerimeter, E))
+    ## Perimeter
+    img = io.imread(fileNameJpg)
+    bw = img[:,:,0] > 230
+    regions = regionprops(bw.astype(int))
+    filePerimeter = regions[0].perimeter
+
+    E = shannonResult + saliencyMap + saliencyThresh + fileColorfullness + filePerimeter
+
+    print("{}, size(raw): {}, shannon: {}, size(canny): {}, saliency map: {}, saliency threshold: {}, colorfullness: {}, perimeter: {}, E: {}".format(fileName, fileSize, shannonResult, cannonResult, saliencyMap, saliencyThresh, fileColorfullness, filePerimeter, E))
+
+    results.writerow([fileName, fileSize, shannonResult, cannonResult, saliencyMap, saliencyThresh, fileColorfullness, filePerimeter])
