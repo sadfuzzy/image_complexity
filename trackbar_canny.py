@@ -7,7 +7,6 @@ Canny Edge Detection tool with trackbars for varying thresholds.
 
 import cv2
 
-
 # this function is needed for the createTrackbar step downstream
 def nothing(x):
     pass
