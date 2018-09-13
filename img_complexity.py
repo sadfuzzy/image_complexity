@@ -42,9 +42,8 @@ def imageColorfulness(imagePath):
   return stdRoot + (0.3 * meanRoot)
 
 # ------------------------------ MY METHOD --------------------
-# fileNames = ['Animals_001_h','Animals_002_v','Animals_003_h']
-fileNames =  ['-1.1','-1.2','-1.3','-2.1','-2.2','-2.3','-3.1','-3.2','-3.3','-4.1']
-imagesPath = 'pics/'
+imagesPath = 'картинки сжатые/'
+fileNames = [f for f in os.listdir(imagesPath) if f.split('.')[-1] == 'jpg']
 balancingKoeff = 1.56
 
 with open('results.csv', 'w', newline='') as csvfile:
@@ -53,7 +52,8 @@ with open('results.csv', 'w', newline='') as csvfile:
   results.writerow(['Image', 'File size', 'Shannon', 'Canny', 'SaliencyMap', 'SaliencyTresh', 'Kronrod', 'Perimeter'])
 
   for fileName in fileNames:
-    fileName = imagesPath + fileName
+    fileName = imagesPath + fileName.split('.')[0]
+    # fileName = imagesPath + fileName
     fileNameJpg = fileName + '.jpg'
 
     # * File size
